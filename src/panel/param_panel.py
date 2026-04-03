@@ -291,8 +291,8 @@ class TDMSSettingPanel(QtWidgets.QWidget):
             sb.setAccelerated(True)
             sb.setFixedWidth(70)
 
-        offthr.setValue(0.0)
-        onthr.setValue(0.0)
+        offthr.setValue(0.1)
+        onthr.setValue(0.1)
         offthr.setEnabled(True)
 
         onthr.valueChanged.connect(lambda v, c=col: self._on_threshold_changed(c, which="on", val=v))
