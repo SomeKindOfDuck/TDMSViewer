@@ -1,5 +1,9 @@
 import numpy as np
-from pandas import DataFrame as DataFrame
+import pandas as pd
+from pandas import DataFrame, concat
+
+from core.datasource import DataSource
+from panel.param_panel import TDMSSettings
 
 
 def make_dummy_df(N=200_000, fs=1000):
@@ -81,3 +85,54 @@ def debounce_binary_after_schmitt(bins, n_frames: int):
         y[i] = state
 
     return y
+
+def as_binary_dataframe(ds: DataSource, cols: list[str], setting: TDMSSettings, source: str = "main") -> DataFrame:
+    def _binary_to_event_df(yb: np.ndarray, col: str, fs: float) -> DataFrame:
+        yb = np.asarray(yb).astype(np.int8, copy=False)
+
+        if yb.size == 0:
+            return DataFrame(columns=["event", "time"])
+
+        prev = np.r_[0, yb[:-1]]
+
+        on_idx = np.where((prev == 0) & (yb == 1))[0]
+        off_idx = np.where((prev == 1) & (yb == 0))[0]
+
+        on_df = DataFrame({
+            "event": f"{col}-on",
+            "time": on_idx / fs,
+        })
+        off_df = DataFrame({
+            "event": f"{col}-off",
+            "time": off_idx / fs,
+        })
+
+        out = concat([on_df, off_df], ignore_index=True)
+        out = out.sort_values("time", kind="stable").reset_index(drop=True)
+        return out
+
+    fs = float(setting.get("fs", 1000))
+    dfs = []
+
+    for col in cols:
+        y = ds.get_source_col(source, col)
+
+        if setting.get_for_col("invert_y", col, False):
+            y = -y
+
+        on, off = setting.get_for_col("threshold", col)
+        yb = schmitt_trigger(y, on, off, init=0)
+
+        debounce = setting.get_for_col("debounce", col)
+        if debounce and debounce > 0:
+            yb = debounce_binary_after_schmitt(yb, int(debounce))
+
+        dfs.append(_binary_to_event_df(yb, col, fs))
+
+    if dfs:
+        out = concat(dfs, ignore_index=True)
+        out = out.sort_values("time", kind="stable").reset_index(drop=True)
+    else:
+        out = DataFrame(columns=["event", "time"])
+
+    return out

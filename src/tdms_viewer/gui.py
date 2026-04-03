@@ -87,7 +87,7 @@ class TDMSViewer(QtWidgets.QApplication):
             return int(np.sum((yb[1:] == 1) & (yb[:-1] == 0)))
 
         def _apply_event_count():
-            from panel import debounce_binary_after_schmitt, schmitt_trigger
+            from core import debounce_binary_after_schmitt, schmitt_trigger
             QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.CursorShape.WaitCursor)
             for col in self.cols:
                 y = self.ds.get_source_col(self.source, col)
@@ -173,7 +173,8 @@ class TDMSViewer(QtWidgets.QApplication):
         import pandas as pd
         from PyQt6 import QtWidgets
 
-        from core import debounce_binary_after_schmitt, schmitt_trigger
+        from core import (as_binary_dataframe, debounce_binary_after_schmitt,
+                          schmitt_trigger)
         from panel.selecter import ColumnSelectDialog
 
         dlg = ColumnSelectDialog(self.cols, title="Select TDMS channels", parent=self.window)
@@ -185,58 +186,12 @@ class TDMSViewer(QtWidgets.QApplication):
 
         selected_channels = dlg.selected()
 
-        def _binary_to_event_df(yb: np.ndarray, col: str, fs: float) -> pd.DataFrame:
-            yb = np.asarray(yb).astype(np.int8, copy=False)
-
-            if yb.size == 0:
-                return pd.DataFrame(columns=["event", "time"])
-
-            prev = np.r_[0, yb[:-1]]
-
-            on_idx = np.where((prev == 0) & (yb == 1))[0]
-            off_idx = np.where((prev == 1) & (yb == 0))[0]
-
-            on_df = pd.DataFrame({
-                "event": f"{col}-on",
-                "time": on_idx / fs,
-            })
-            off_df = pd.DataFrame({
-                "event": f"{col}-off",
-                "time": off_idx / fs,
-            })
-
-            out = pd.concat([on_df, off_df], ignore_index=True)
-            out = out.sort_values("time", kind="stable").reset_index(drop=True)
-            return out
-
         default_path = None
         if hasattr(self, "_tdms_path") and self._tdms_path:
             p = Path(self._tdms_path)
             default_path = p.with_name(p.stem + "_binary.csv")
 
-        fs = float(self.settings.get("fs", 1000))
-        dfs = []
-
-        for col in selected_channels:
-            y = self.ds.get_source_col(self.source, col)
-
-            if self.settings.get_for_col("invert_y", col, False):
-                y = -y
-
-            on, off = self.settings.get_for_col("threshold", col)
-            yb = schmitt_trigger(y, on, off, init=0)
-
-            debounce = self.settings.get_for_col("debounce", col)
-            if debounce and debounce > 0:
-                yb = debounce_binary_after_schmitt(yb, int(debounce))
-
-            dfs.append(_binary_to_event_df(yb, col, fs))
-
-        if dfs:
-            out = pd.concat(dfs, ignore_index=True)
-            out = out.sort_values("time", kind="stable").reset_index(drop=True)
-        else:
-            out = pd.DataFrame(columns=["event", "time"])
+        out = as_binary_dataframe(self.ds, selected_channels, self.settings)
 
         path, _ = QtWidgets.QFileDialog.getSaveFileName(
             self.window,
