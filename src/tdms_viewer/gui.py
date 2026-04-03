@@ -173,7 +173,7 @@ class TDMSViewer(QtWidgets.QApplication):
         import pandas as pd
         from PyQt6 import QtWidgets
 
-        from panel import debounce_binary_after_schmitt, schmitt_trigger
+        from core import debounce_binary_after_schmitt, schmitt_trigger
         from panel.selecter import ColumnSelectDialog
 
         dlg = ColumnSelectDialog(self.cols, title="Select TDMS channels", parent=self.window)
