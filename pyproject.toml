@@ -19,6 +19,7 @@ build-backend = "uv_build"
 
 [project.scripts]
 tdms-viewer = "tdms_viewer.cli:main"
+fsig = "fsig.cli:main"
 
 [dependency-groups]
 dev = [
