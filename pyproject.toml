@@ -17,6 +17,9 @@ dependencies = [
 requires = ["uv_build"]
 build-backend = "uv_build"
 
+[project.scripts]
+tdms-viewer = "tdms_viewer.cli:main"
+
 [dependency-groups]
 dev = [
     "isort>=8.0.1",
