@@ -56,8 +56,8 @@ class TDMSViewer(QtWidgets.QApplication):
         right_layout = QtWidgets.QVBoxLayout(self.right_panel)
         right_layout.setContentsMargins(0, 0, 0, 0)
         right_layout.setSpacing(10)
-        right_layout.addWidget(self.setting_panel, 1)
-        right_layout.addStretch(1)
+        right_layout.addWidget(self.setting_panel, 0)
+        # right_layout.addStretch(1)
         right_layout.addWidget(self.action_panel, 0)
 
         self.splitter = QtWidgets.QSplitter(QtCore.Qt.Orientation.Horizontal)

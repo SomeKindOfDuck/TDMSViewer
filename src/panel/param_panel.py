@@ -121,7 +121,7 @@ class TDMSSettingPanel(QtWidgets.QWidget):
         self.debounce_boxes = {}
 
         varset_rows = self.build_threshold_panel(cols, colors)
-        layout.addWidget(varset_rows)
+        layout.addWidget(varset_rows, 0)
         layout.addSpacing(10)
 
         self.count_btn = self._build_count_btn()
@@ -131,9 +131,9 @@ class TDMSSettingPanel(QtWidgets.QWidget):
         counts_lab.setStyleSheet("font-weight: bold; font-size: 16px")
         layout.addWidget(counts_lab)
         layout.addSpacing(10)
-        layout.addWidget(self._build_count_panel(cols, colors))
+        layout.addWidget(self._build_count_panel(cols, colors), 0)
 
-        layout.addStretch()
+        layout.addStretch(1)
 
     #########################################
     #### Global setting 設定関連メソッド ####
@@ -218,7 +218,6 @@ class TDMSSettingPanel(QtWidgets.QWidget):
         scroll_area.setWidgetResizable(True)
         scroll_area.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
         scroll_area.setMinimumHeight(100)
-        scroll_area.setMaximumHeight(400)
 
         thr_inner = QtWidgets.QWidget()
         thr_layer = QtWidgets.QGridLayout(thr_inner)
@@ -452,7 +451,6 @@ class TDMSSettingPanel(QtWidgets.QWidget):
         scroll_area = QtWidgets.QScrollArea()
         scroll_area.setWidgetResizable(True)
         scroll_area.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
-        scroll_area.setMaximumHeight(400)
 
         counts_inner = QtWidgets.QWidget()
         counts_layout = QtWidgets.QGridLayout(counts_inner)
