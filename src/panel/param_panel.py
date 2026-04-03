@@ -55,7 +55,7 @@ class TDMSSettings(ParameterSettings):
 
         return out
 
-    def _apply_settings_dict(self, data: dict):
+    def apply_settings_dict(self, data: dict):
         if not data:
             return
 

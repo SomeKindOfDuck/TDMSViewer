@@ -48,7 +48,7 @@ class TDMSViewer(QtWidgets.QApplication):
             if (visibility := default_settings.get("visible")) is not None:
                 default_cols = list(visibility.keys())
                 if default_cols == cols:
-                    self.settings._apply_settings_dict(default_settings)
+                    self.settings.apply_settings_dict(default_settings)
                     self.setting_panel.sync_all_from_settings()
 
         self.action_panel = TDMSActionPanel()
@@ -260,7 +260,7 @@ class TDMSViewer(QtWidgets.QApplication):
         if (visibility := new_settings.get("visible")) is not None:
             setting_cols = list(visibility.keys())
             if setting_cols == self.cols:
-                self.settings._apply_settings_dict(new_settings)
+                self.settings.apply_settings_dict(new_settings)
                 self.setting_panel.sync_all_from_settings()
 
     def load_dataframe(self, df, source: str = "main"):

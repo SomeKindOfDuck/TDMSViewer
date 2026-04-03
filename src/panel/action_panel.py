@@ -6,6 +6,7 @@ from nptdms import TdmsFile
 from pandas import DataFrame
 from PyQt6 import QtCore, QtWidgets
 
+
 class TDMSActionPanel(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
