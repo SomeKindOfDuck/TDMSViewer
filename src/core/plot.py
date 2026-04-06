@@ -8,7 +8,7 @@ from PyQt6 import QtCore, QtGui
 
 from core.colors import ICEBERG_DARK_SERIES
 from core.components import ParameterSettings, SecondsAxis, TrackpadXPanViewBox
-from core.datasource import DataSource, TimeData
+from core.datasource import TimeData
 
 
 @dataclass
@@ -21,8 +21,7 @@ class Signal:
 class DataPlot(pg.PlotWidget):
     def __init__(
         self,
-        ds: DataSource,
-        source = "main",
+        ds: TimeData,
         parent=None,
         fs: int = 1000,
         settings = ParameterSettings(),
@@ -38,7 +37,6 @@ class DataPlot(pg.PlotWidget):
         super().__init__(axisItems={"bottom": self.axis_bottom}, viewBox=vb, parent=parent)
         self.getViewBox().enableAutoRange(y=False)
 
-        self._source = source
         self._cols: list[str] = []
         self.signals: dict[str, Signal] = {}
         self._show_all = True
@@ -46,7 +44,7 @@ class DataPlot(pg.PlotWidget):
         self._win_offset = 10_000
         self._min_sample = 10_000
         self._min_window = 100
-        self._max_window = self.ds.N
+        self._max_window = self.ds.nrow
         self._xpad = 0.01
         self._show_legend = True
         self._legend: pg.LegendItem | None = None
@@ -74,10 +72,6 @@ class DataPlot(pg.PlotWidget):
         self.set_window(self._win_onset, self._win_offset, move_view=True)
 
     @property
-    def source(self) -> str | None:
-        return self._source
-
-    @property
     def columns(self) -> list[str]:
         return self._cols
 
@@ -88,12 +82,9 @@ class DataPlot(pg.PlotWidget):
     def process_signal(self, sig: np.ndarray, col: str | None = None) -> np.ndarray:
         return sig
 
-    def set_signals(self, source: str, cols: list[str]):
+    def set_signals(self, cols: list[str]):
         from itertools import cycle
 
-        if not source in self.ds._sources:
-            raise ValueError(f"{source}が{self.ds}内にありません")
-        self._source = source
         self._cols = list(cols)
 
         self.clear()
@@ -202,13 +193,11 @@ class DataPlot(pg.PlotWidget):
             self,
             col: str,
             visible: bool,
-            source: str | None = None,
             propagate = True
         ):
-        source = self._source if source is None else source
         signal = self.signals.get(col)
         if signal is None:
-            raise KeyError(f"Unknown signal: source={source}, col={col}")
+            raise KeyError(f"Unknown signal: col={col}")
 
         if visible == signal.visible:
             return
@@ -220,15 +209,15 @@ class DataPlot(pg.PlotWidget):
             for fn in list(signal.link):
                 fn(visible)
 
-    def toggle_signal_visible(self, col: str, source: str | None = None) -> bool:
+    def toggle_signal_visible(self, col: str) -> bool:
         signal = self.signals.get(col)
         if signal is None:
-            raise KeyError(f"Unknown signal: source={source}, col={col}")
+            raise KeyError(f"Unknown signal: col={col}")
         new_vis = not signal.visible
-        self.set_signal_visible(col, new_vis, source=source, propagate=True)
+        self.set_signal_visible(col, new_vis, propagate=True)
         return new_vis
 
-    def toggle_all_visible(self, source: str | None = None):
+    def toggle_all_visible(self):
         no_vis = (sum([signal.visible for signal in self.signals.values()]) == 0)
         all_vis = (sum([not signal.visible for signal in self.signals.values()]) == 0)
         if no_vis:
@@ -241,13 +230,13 @@ class DataPlot(pg.PlotWidget):
         for col in self._cols:
             signal = self.signals.get(col)
             if signal is None:
-                raise KeyError(f"Unknown signal: source={source}, col={col}")
-            self.set_signal_visible(col, new_vis, source=source, propagate=True)
+                raise KeyError(f"Unknown signal: col={col}")
+            self.set_signal_visible(col, new_vis, propagate=True)
         self._show_all = new_vis
 
-    def get_signal_visible(self, col: str, source: str | None = None) -> bool:
+    def get_signal_visible(self, col: str, ) -> bool:
         if col not in self.signals:
-            raise KeyError(f"Unknown signal: source={source}, col={col}")
+            raise KeyError(f"Unknown signal: col={col}")
         return bool(self.signals[col].visible)
 
     def link_signals(
@@ -259,20 +248,17 @@ class DataPlot(pg.PlotWidget):
         dst_source: str | None = None,
         bidirectional: bool = True,
     ) -> None:
-        src_source = self._source if src_source is None else src_source
-        dst_source = dst_plot._source if dst_source is None else dst_source
-
         src_sig = self.signals[src_col]
         dst_sig = dst_plot.signals[dst_col]
 
         def _push_to_dst(v: bool) -> None:
-            dst_plot.set_signal_visible(dst_col, v, source=dst_source, propagate=False)
+            dst_plot.set_signal_visible(dst_col, v, propagate=False)
 
         src_sig.link.append(_push_to_dst)
 
         if bidirectional:
             def _push_to_src(v: bool) -> None:
-                self.set_signal_visible(src_col, v, source=src_source, propagate=False)
+                self.set_signal_visible(src_col, v, propagate=False)
 
             dst_sig.link.append(_push_to_src)
 
@@ -306,8 +292,6 @@ class DataPlot(pg.PlotWidget):
     #### x軸の操作に関するメソッド ####
     ###################################
     def _clamp_xrange(self, x_on: float, x_off: float) -> tuple[float, float]:
-        N = float(self.ds.N)
-
         if x_off < x_on:
             x_on, x_off = x_off, x_on
 
@@ -326,14 +310,14 @@ class DataPlot(pg.PlotWidget):
         if x_on < 0.0:
             x_on = 0.0
             x_off = x_on + span
-        if x_off > N:
-            x_off = N
+        if x_off > self.ds.nrow:
+            x_off = self.ds.nrow
             x_on = x_off - span
 
         if x_on < 0.0:
             x_on = 0.0
-        if x_off > N:
-            x_off = N
+        if x_off > self.ds.nrow:
+            x_off = self.ds.nrow
 
         return x_on, x_off
 
@@ -358,7 +342,7 @@ class DataPlot(pg.PlotWidget):
 
     def _ensure_in_buffer(self, x_on: float, x_off: float):
         x_on = max(0.0, x_on)
-        x_off = min(float(self.ds.N), x_off)
+        x_off = min(float(self.ds.nrow), x_off)
 
         is_view_in_buf = (self._buf_on <= x_on) and (self._buf_off >= x_off)
         nsamples = max(self._min_sample, int(round(x_off - x_on)))
@@ -393,8 +377,7 @@ class DataPlot(pg.PlotWidget):
             self._apply_window_to_view()
 
     def refresh(self):
-        x, chunk = self.ds.get_chunk_from_source(
-            self._source,
+        x, chunk = self.ds.get_chunk(
             self._cols,
             self._win_onset,
             self._win_offset,
@@ -410,8 +393,7 @@ class DataPlot(pg.PlotWidget):
 
 
     def refresh_one(self, col: str):
-        x, chunk = self.ds.get_chunk_from_source(
-            self._source,
+        x, chunk = self.ds.get_chunk(
             self._cols,
             self._win_onset,
             self._win_offset,
@@ -421,7 +403,6 @@ class DataPlot(pg.PlotWidget):
             y = np.empty((0,), dtype=np.float32)
         y = self.process_signal(y, col)
         self._curves[col].setData(x, y)
-
 
     ##################################
     #### GUISetting関連のメソッド ####
@@ -467,7 +448,7 @@ if __name__ == "__main__":
     apply_colorscheme(app, ICEBERG_DARK)
 
     df = make_dummy_df(N=300_000, fs=1000)
-    ds = DataSource(TimeData("main", df), name="main")
+    ds = TimeData(df)
 
     w = QtWidgets.QMainWindow()
     plot = DataPlot(ds)
@@ -475,7 +456,7 @@ if __name__ == "__main__":
     w.resize(1200, 700)
     w.setWindowTitle("DataPlot demo")
 
-    plot.set_signals("main", ["sin_3hz", "sin_4hz"])
+    plot.set_signals(["sin_3hz", "sin_4hz"])
 
     w.show()
     sys.exit(app.exec())

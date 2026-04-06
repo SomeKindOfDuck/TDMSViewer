@@ -77,22 +77,22 @@ if __name__ == "__main__":
 
     from core import make_dummy_df
     from core.colors import ICEBERG_DARK, apply_colorscheme
-    from core.datasource import DataSource, TimeData
+    from core.datasource import TimeData
     from core.plot import DataPlot
 
     app = QtWidgets.QApplication(sys.argv)
     apply_colorscheme(app, ICEBERG_DARK)
 
     df = make_dummy_df(N=300_000, fs=1000)
-    ds = DataSource(TimeData("main", df), name="main")
+    ds = TimeData(df)
 
     w = QtWidgets.QMainWindow()
     w.resize(1200, 700)
     p1 = DataPlot(ds, show_x_axis=True)
     p2 = DataPlot(ds, show_x_axis=True)
 
-    p1.set_signals("main", ["sin_3hz", "sin_4hz"])
-    p2.set_signals("main", ["sin_4hz", "sin_6hz"])
+    p1.set_signals(["sin_3hz", "sin_4hz"])
+    p2.set_signals(["sin_4hz", "sin_6hz"])
     p1.link_signals("sin_3hz", p2, "sin_6hz")
 
     stack = DataPlotStack([p1, p2], link_x=True, show_x_axis_only_bottom=True)

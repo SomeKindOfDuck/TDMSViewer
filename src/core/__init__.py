@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 from pandas import DataFrame, concat
 
-from core.datasource import DataSource
+from core.datasource import TimeData
 from panel.param_panel import TDMSSettings
 
 
@@ -89,7 +89,7 @@ def debounce_binary_after_schmitt(bins, n_frames: int):
 
     return y
 
-def as_binary_dataframe(ds: DataSource, cols: list[str], setting: TDMSSettings, source: str = "main") -> DataFrame:
+def as_binary_dataframe(ds: TimeData, cols: list[str], setting: TDMSSettings, source: str = "main") -> DataFrame:
     def _binary_to_event_df(yb: np.ndarray, col: str, fs: float) -> DataFrame:
         yb = np.asarray(yb).astype(np.int8, copy=False)
 
@@ -118,7 +118,7 @@ def as_binary_dataframe(ds: DataSource, cols: list[str], setting: TDMSSettings, 
     dfs = []
 
     for col in cols:
-        y = ds.get_source_col(source, col)
+        y = ds.get_col(col)
 
         if setting.get_for_col("invert_y", col, False):
             y = -y

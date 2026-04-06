@@ -5,7 +5,7 @@ from PyQt6 import QtCore, QtWidgets
 
 from core import load_settings_yaml, make_dummy_df
 from core.colors import ICEBERG_DARK, apply_colorscheme
-from core.datasource import DataSource, TimeData
+from core.datasource import TimeData
 from core.plotstack import DataPlotStack
 from panel.action_panel import TDMSActionPanel
 from panel.param_panel import TDMSSettingPanel, TDMSSettings
@@ -15,9 +15,8 @@ from panel.plot_panel import AnalogPlot, BinPlot
 class TDMSViewer(QtWidgets.QApplication):
     def __init__(
             self,
-            ds: DataSource,
+            ds: TimeData,
             cols: list[str],
-            source: str = "main",
             size: tuple[int, int] = (1600, 800),
         ):
         import sys
@@ -27,14 +26,13 @@ class TDMSViewer(QtWidgets.QApplication):
         self.window.resize(*size)
 
         self.settings = TDMSSettings()
-        self.source = source
         self.cols = cols
         self.ds = ds
 
         self.analog_plot = AnalogPlot(self.ds, settings=self.settings)
         self.bin_plot = BinPlot(self.ds, settings=self.settings)
-        self.analog_plot.set_signals(source, cols)
-        self.bin_plot.set_signals(source, cols)
+        self.analog_plot.set_signals(cols)
+        self.bin_plot.set_signals(cols)
         self.stack = DataPlotStack(
             [self.analog_plot, self.bin_plot],
             link_x=True,
@@ -93,7 +91,7 @@ class TDMSViewer(QtWidgets.QApplication):
             from core import debounce_binary_after_schmitt, schmitt_trigger
             QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.CursorShape.WaitCursor)
             for col in self.cols:
-                y = self.ds.get_source_col(self.source, col)
+                y = self.ds.get_col(col)
                 on, off = self.settings.get_for_col("threshold", col)
                 yb = schmitt_trigger(y, on, off, init=0)
                 debounce = self.settings.get_for_col("debounce", col)
@@ -158,9 +156,9 @@ class TDMSViewer(QtWidgets.QApplication):
                 return
 
             df = self.action_panel.tdms_to_dataframe(tdms, selected_channels)
-            self.load_dataframe(df, source="main")
-            self.analog_plot._max_window = self.ds.N
-            self.bin_plot._max_window = self.ds.N
+            self.load_dataframe(df)
+            self.analog_plot._max_window = self.ds.nrow
+            self.bin_plot._max_window = self.ds.nrow
 
         except Exception as e:
             QtWidgets.QMessageBox.critical(
@@ -263,14 +261,13 @@ class TDMSViewer(QtWidgets.QApplication):
                 self.settings.apply_settings_dict(new_settings)
                 self.setting_panel.sync_all_from_settings()
 
-    def load_dataframe(self, df, source: str = "main"):
-        from core.datasource import DataSource, TimeData
+    def load_dataframe(self, df):
+        from core.datasource import TimeData
         from panel.param_panel import TDMSSettingPanel, TDMSSettings
 
         cols = list(df.columns)
 
-        self.ds = DataSource(TimeData(source, df), name=source)
-        self.source = source
+        self.ds = TimeData(df)
         self.cols = cols
 
         self.settings = TDMSSettings()
@@ -283,8 +280,8 @@ class TDMSViewer(QtWidgets.QApplication):
         self.analog_plot.set_settings(self.settings)
         self.bin_plot.set_settings(self.settings)
 
-        self.analog_plot.set_signals(source, cols)
-        self.bin_plot.set_signals(source, cols)
+        self.analog_plot.set_signals(cols)
+        self.bin_plot.set_signals(cols)
 
         colors = self.analog_plot.colors
         new_panel = TDMSSettingPanel(settings=self.settings, cols=cols, colors=colors)
@@ -302,7 +299,7 @@ def main():
     import sys
 
     df = make_dummy_df(N=300_000, fs=1000)
-    ds = DataSource(TimeData("main", df), name="main")
+    ds = TimeData(df)
 
     tdms_viewer = TDMSViewer(ds, ["sin_3hz", "sin_4hz"])
     sys.exit(tdms_viewer.exec())

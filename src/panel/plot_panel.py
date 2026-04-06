@@ -13,7 +13,7 @@ class AnalogPlot(DataPlot):
         super().__init__(*args, **kwargs)
         self.setYRange(-1, 5, padding=0)
 
-    def set_signals(self, source: str, cols: list[str]):
+    def set_signals(self, cols: list[str]):
         from itertools import cycle
 
         import pyqtgraph as pg
@@ -25,7 +25,7 @@ class AnalogPlot(DataPlot):
         self.on_lines.clear()
         self.off_lines.clear()
 
-        super().set_signals(source, cols)
+        super().set_signals(cols)
 
         for col, color in zip(self._cols, cycle(self._theme_colors)):
             qcol = QtGui.QColor(color)
