@@ -25,3 +25,17 @@ cd TDMSViewer
 
 ターミナル上で`uv sync`を実行して依存関係をインストールします。
 問題なくインストールできたら、`uv run tdms-viewer`を実行すると、GUIが立ち上がります。
+
+## 使い方
+### TDMSViewer
+あえて説明しなくてもなんとなく分かると思います。  
+分からないことがあれば直接聞いてください。  
+
+### add-column
+解析済みのCSVファイルの特定イベントを検出して、任意の列名で通し番号を追加します。  
+基本的な使い方は、`uv run add-column`に以下のように引数としてCSVのパス、検出するイベント名、追加する列名を与えます。  
+```
+uv run add-column CSVファイルのパス 検出したいイベント名 新たな列名
+```
+例えばFrame_signal-onを検出したい場合には、eventは名はFrame_signalを指定してください。  
+次に、追加する列名をFrame-idxとすると、元のCSVファイルに新たなにFrame-idxという列が追加され、Frame_signal-onの通し番号が追加されます。  
