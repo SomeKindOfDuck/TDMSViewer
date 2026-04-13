@@ -9,6 +9,7 @@ import pandas as pd
 def add_event_segment_number(
     df: pd.DataFrame,
     base_event_name: str,
+    colname: str,
     time_col: str = "time",
     event_col: str = "event",
 ) -> pd.DataFrame:
@@ -29,7 +30,7 @@ def add_event_segment_number(
     segment = pd.Series(
         onset_times.searchsorted(out[time_col].to_numpy(), side="right"),
         index=out.index,
-        name=f"frame_idx",
+        name=colname,
     )
 
     out[segment.name] = segment
@@ -63,6 +64,11 @@ def parse_args() -> argparse.Namespace:
         help="Base event name without '-on' suffix (e.g. 'hoge')",
     )
     parser.add_argument(
+        "colname",
+        type=str,
+        help="新たに追加する列名",
+    )
+    parser.add_argument(
         "--time-col",
         type=str,
         default="time",
@@ -91,6 +97,7 @@ def main() -> None:
         out = add_event_segment_number(
             df,
             base_event_name=args.event,
+            colname=args.colname,
             time_col=args.time_col,
             event_col=args.event_col,
         )
