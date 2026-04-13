@@ -66,7 +66,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "colname",
         type=str,
-        help="新たに追加する列名",
+        help="Names of columns to add",
     )
     parser.add_argument(
         "--time-col",
