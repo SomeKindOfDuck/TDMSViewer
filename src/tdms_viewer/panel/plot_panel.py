@@ -1,8 +1,8 @@
 import numpy as np
 from PyQt6 import QtCore, QtGui
 
-from core import debounce_binary_after_schmitt, schmitt_trigger
-from core.plot import DataPlot
+from tdms_viewer.core import debounce_binary_after_schmitt, schmitt_trigger
+from tdms_viewer.core.plot import DataPlot
 
 
 class AnalogPlot(DataPlot):

@@ -3,13 +3,13 @@ from typing import Any
 
 from PyQt6 import QtCore, QtWidgets
 
-from core import load_settings_yaml, make_dummy_df
-from core.colors import ICEBERG_DARK, apply_colorscheme
-from core.datasource import TimeData
-from core.plotstack import DataPlotStack
-from panel.action_panel import TDMSActionPanel
-from panel.param_panel import TDMSSettingPanel, TDMSSettings
-from panel.plot_panel import AnalogPlot, BinPlot
+from tdms_viewer.core import load_settings_yaml, make_dummy_df
+from tdms_viewer.core.colors import ICEBERG_DARK, apply_colorscheme
+from tdms_viewer.core.datasource import TimeData
+from tdms_viewer.core.plotstack import DataPlotStack
+from tdms_viewer.panel.action_panel import TDMSActionPanel
+from tdms_viewer.panel.param_panel import TDMSSettingPanel, TDMSSettings
+from tdms_viewer.panel.plot_panel import AnalogPlot, BinPlot
 
 
 class TDMSViewer(QtWidgets.QApplication):
@@ -88,7 +88,8 @@ class TDMSViewer(QtWidgets.QApplication):
             return int(np.sum((yb[1:] == 1) & (yb[:-1] == 0)))
 
         def _apply_event_count():
-            from core import debounce_binary_after_schmitt, schmitt_trigger
+            from tdms_viewer.core import (debounce_binary_after_schmitt,
+                                          schmitt_trigger)
             QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.CursorShape.WaitCursor)
             for col in self.cols:
                 y = self.ds.get_col(col)
@@ -114,8 +115,7 @@ class TDMSViewer(QtWidgets.QApplication):
 
     def _on_load_tdms(self):
         from nptdms import TdmsFile
-
-        from panel.selecter import ColumnSelectDialog
+        from tdms_viewer.panel.selecter import ColumnSelectDialog
 
         path, _ = QtWidgets.QFileDialog.getOpenFileName(
             self.window,
@@ -174,9 +174,10 @@ class TDMSViewer(QtWidgets.QApplication):
         import pandas as pd
         from PyQt6 import QtWidgets
 
-        from core import (as_binary_dataframe, debounce_binary_after_schmitt,
-                          schmitt_trigger)
-        from panel.selecter import ColumnSelectDialog
+        from tdms_viewer.core import (as_binary_dataframe,
+                                      debounce_binary_after_schmitt,
+                                      schmitt_trigger)
+        from tdms_viewer.panel.selecter import ColumnSelectDialog
 
         dlg = ColumnSelectDialog(self.cols, title="Select TDMS channels", parent=self.window)
         for cb in dlg.checks.values():
@@ -262,8 +263,9 @@ class TDMSViewer(QtWidgets.QApplication):
                 self.setting_panel.sync_all_from_settings()
 
     def load_dataframe(self, df):
-        from core.datasource import TimeData
-        from panel.param_panel import TDMSSettingPanel, TDMSSettings
+        from tdms_viewer.core.datasource import TimeData
+        from tdms_viewer.panel.param_panel import (TDMSSettingPanel,
+                                                   TDMSSettings)
 
         cols = list(df.columns)
 
