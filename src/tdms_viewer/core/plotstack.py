@@ -75,10 +75,10 @@ if __name__ == "__main__":
 
     from PyQt6 import QtWidgets
 
-    from core import make_dummy_df
-    from core.colors import ICEBERG_DARK, apply_colorscheme
-    from core.datasource import TimeData
-    from core.plot import DataPlot
+    from tdms_viewer.core import make_dummy_df
+    from tdms_viewer.core.colors import ICEBERG_DARK, apply_colorscheme
+    from tdms_viewer.core.datasource import TimeData
+    from tdms_viewer.core.plot import DataPlot
 
     app = QtWidgets.QApplication(sys.argv)
     apply_colorscheme(app, ICEBERG_DARK)

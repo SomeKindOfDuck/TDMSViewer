@@ -6,9 +6,10 @@ import numpy as np
 import pyqtgraph as pg
 from PyQt6 import QtCore, QtGui
 
-from core.colors import ICEBERG_DARK_SERIES
-from core.components import ParameterSettings, SecondsAxis, TrackpadXPanViewBox
-from core.datasource import TimeData
+from tdms_viewer.core.colors import ICEBERG_DARK_SERIES
+from tdms_viewer.core.components import (ParameterSettings, SecondsAxis,
+                                         TrackpadXPanViewBox)
+from tdms_viewer.core.datasource import TimeData
 
 
 @dataclass
@@ -263,7 +264,7 @@ class DataPlot(pg.PlotWidget):
             dst_sig.link.append(_push_to_src)
 
     def _set_legend_bg(self, border_width = 1, pad = 4, radius = 6):
-        from core.colors import ICEBERG_DARK
+        from tdms_viewer.core.colors import ICEBERG_DARK
         if self._legend is None:
             return
         try:
@@ -441,8 +442,8 @@ if __name__ == "__main__":
 
     from PyQt6 import QtWidgets
 
-    from core import make_dummy_df
-    from core.colors import ICEBERG_DARK, apply_colorscheme
+    from tdms_viewer.core import make_dummy_df
+    from tdms_viewer.core.colors import ICEBERG_DARK, apply_colorscheme
 
     app = QtWidgets.QApplication(sys.argv)
     apply_colorscheme(app, ICEBERG_DARK)

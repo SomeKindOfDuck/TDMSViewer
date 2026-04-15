@@ -3,7 +3,7 @@ from typing import Any
 
 from PyQt6 import QtCore, QtWidgets
 
-from core.components import ParameterSettings, SettingEvent
+from tdms_viewer.core.components import ParameterSettings, SettingEvent
 
 
 class TDMSSettings(ParameterSettings):
@@ -212,7 +212,7 @@ class TDMSSettingPanel(QtWidgets.QWidget):
     #### 変数ごとの設定関連メソッド ####
     ####################################
     def build_threshold_panel(self, cols: list[str], colors: list[str]) -> QtWidgets.QWidget:
-        from core.components import ClickableLabel
+        from tdms_viewer.core.components import ClickableLabel
 
         scroll_area = QtWidgets.QScrollArea()
         scroll_area.setWidgetResizable(True)
@@ -250,7 +250,7 @@ class TDMSSettingPanel(QtWidgets.QWidget):
         return scroll_area
 
     def _set_col(self, layout: QtWidgets.QGridLayout, row: int, col: str, color: str):
-        from core.components import ClickableLabel
+        from tdms_viewer.core.components import ClickableLabel
         lab = ClickableLabel(col)
         lab.setTextInteractionFlags(QtCore.Qt.TextInteractionFlag.TextSelectableByMouse)
         lab.setCursor(QtCore.Qt.CursorShape.PointingHandCursor)

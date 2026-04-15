@@ -6,8 +6,8 @@ import pandas as pd
 import yaml
 from pandas import DataFrame, concat
 
-from core.datasource import TimeData
-from panel.param_panel import TDMSSettings
+from tdms_viewer.core.datasource import TimeData
+from tdms_viewer.panel.param_panel import TDMSSettings
 
 
 def make_dummy_df(N=200_000, fs=1000):

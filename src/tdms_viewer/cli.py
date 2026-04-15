@@ -4,10 +4,10 @@ from pathlib import Path
 import pandas as pd
 from nptdms import TdmsFile
 
-from core import as_binary_dataframe, load_settings_yaml
-from core.datasource import TimeData
-from panel.action_panel import TDMSActionPanel
-from panel.param_panel import TDMSSettings
+from tdms_viewer.core import as_binary_dataframe, load_settings_yaml
+from tdms_viewer.core.datasource import TimeData
+from tdms_viewer.panel.action_panel import TDMSActionPanel
+from tdms_viewer.panel.param_panel import TDMSSettings
 
 
 def parse_args() -> argparse.Namespace:

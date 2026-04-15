@@ -20,7 +20,7 @@ build-backend = "uv_build"
 [project.scripts]
 tdms-viewer = "tdms_viewer.gui:main"
 detect = "tdms_viewer.cli:main"
-add-column = "adclm.cli:main"
+add-column = "tdms_viewer.adclm.cli:main"
 
 [dependency-groups]
 dev = [
