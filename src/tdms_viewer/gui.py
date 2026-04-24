@@ -115,6 +115,7 @@ class TDMSViewer(QtWidgets.QApplication):
 
     def _on_load_tdms(self):
         from nptdms import TdmsFile
+
         from tdms_viewer.panel.selecter import ColumnSelectDialog
 
         path, _ = QtWidgets.QFileDialog.getOpenFileName(
