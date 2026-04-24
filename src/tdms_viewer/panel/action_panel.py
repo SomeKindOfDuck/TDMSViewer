@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 import yaml
 from nptdms import TdmsFile
 from pandas import DataFrame
@@ -92,13 +93,40 @@ class TDMSActionPanel(QtWidgets.QWidget):
                 channel_names.append(f"{group.name}/{ch.name}")
         return channel_names
 
+    # @staticmethod
+    # def tdms_to_dataframe(tdms: TdmsFile, selected_channels: list[str]) -> DataFrame:
+    #     data = {}
+
+    #     for full_name in selected_channels:
+    #         group_name, channel_name = full_name.split("/", 1)
+    #         ch = tdms[group_name][channel_name]
+    #         data[channel_name] = ch[:]
+
+    #     return DataFrame(data)
+
     @staticmethod
-    def tdms_to_dataframe(tdms: TdmsFile, selected_channels: list[str]) -> DataFrame:
-        data = {}
+    def tdms_to_dataframe(
+        tdms: TdmsFile,
+        selected_channels: list[str],
+        max_length_diff: int = 1,
+    ) -> DataFrame:
+        channels = [
+            tdms[group][channel]
+            for group, channel in (name.split("/", 1) for name in selected_channels)
+        ]
 
-        for full_name in selected_channels:
-            group_name, channel_name = full_name.split("/", 1)
-            ch = tdms[group_name][channel_name]
-            data[channel_name] = ch[:]
+        arrays = [ch[:] for ch in channels]
+        lengths = [len(x) for x in arrays]
 
-        return DataFrame(data)
+        min_len = min(lengths)
+        max_len = max(lengths)
+
+        if max_len - min_len > max_length_diff:
+            raise ValueError(
+                f"Channel length mismatch is too large: min={min_len}, max={max_len}"
+            )
+
+        return DataFrame({
+            ch.name: arr[:min_len]
+            for ch, arr in zip(channels, arrays)
+        })
